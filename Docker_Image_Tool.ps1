@@ -141,7 +141,7 @@ function ProcessSingleImage($imageName) {
     $registryName = $xml.SelectNodes("//REGISTRY").InnerText
 
     $NEW_IMAGE_NAME = "$projectName/$imageName"
-    $HARBOR_REGISTRY = $registryName
+    $REGISTRY = $registryName
 
     $progressBar.Visible = $true
 
@@ -152,7 +152,7 @@ function ProcessSingleImage($imageName) {
     }
 
     $progressBar.Value = 25
-
+    Write-Host($NEW_IMAGE_NAME)
     # Build the new image with the provided Dockerfile
     $build_output = docker build -t $NEW_IMAGE_NAME --build-arg IMAGE_NAME=$imageName -f ./DockerFile . 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -160,10 +160,22 @@ function ProcessSingleImage($imageName) {
     }
 
     $progressBar.Value = 50
-
+   
     # Tag the new image with the Harbor registry
-    $tagged_image = "$HARBOR_REGISTRY/$NEW_IMAGE_NAME"
-    docker tag $NEW_IMAGE_NAME $tagged_image
+    if ($REGISTRY -ne "")
+    {
+        $tagged_image = "$REGISTRY/$NEW_IMAGE_NAME"
+        docker image tag $NEW_IMAGE_NAME $tagged_image
+    }
+    else {
+        $tagged_image = "$NEW_IMAGE_NAME"
+    }
+
+    
+    Write-Host($tagged_image)
+    
+
+  
 
     $progressBar.Value = 75
 
