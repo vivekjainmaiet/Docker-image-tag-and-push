@@ -1,10 +1,8 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Xml
 
-# Get the directory path of the script
-$scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Set the XML file path relative to the script directory
-$xmlFilePath = Join-Path -Path $scriptDirectory -ChildPath "config.xml"
+$xmlFilePath = "./config.xml"
 
 
 # Create a form
@@ -86,7 +84,6 @@ $button.Add_Click({
         $progressBar.Value = 25
 
         # Build the new image with the provided Dockerfile
-        Write-host($IMAGE_NAME,$NEW_IMAGE_NAME)
         $build_output = docker build -t $NEW_IMAGE_NAME --build-arg IMAGE_NAME=$IMAGE_NAME -f ./DockerFile . 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to build the new image.`n$build_output"
@@ -120,4 +117,9 @@ $button.Add_Click({
 })
 
 # Start the form
-$form.ShowDialog()
+$result = $form.ShowDialog()
+
+# Check the result and perform further actions if needed
+if ($result -eq [System.Windows.Forms.DialogResult]::Cancel) {
+    exit
+}
