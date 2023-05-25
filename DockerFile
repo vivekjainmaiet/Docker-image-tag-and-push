@@ -1,0 +1,9 @@
+# Base image
+ARG IMAGE_NAME
+FROM $IMAGE_NAME
+
+# Copy the certificate bundle to the image
+COPY *.crt /usr/local/share/ca-certificates/
+
+# Update the certificate authority store
+RUN update-ca-certificates

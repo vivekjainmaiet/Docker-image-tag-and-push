@@ -1,0 +1,6 @@
+<config>
+  <image>
+    <CAPTION>company_or_project_name</CAPTION>
+    <REGISTRY>private_registry_name</REGISTRY>
+  </image>
+</config>
