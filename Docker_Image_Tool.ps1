@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.Xml
 # Get the directory path of the script
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Set the XML file path relative to the script directory
-$xmlFilePath = Join-Path -Path $scriptDirectory -ChildPath "images.xml"
+$xmlFilePath = Join-Path -Path $scriptDirectory -ChildPath "config.xml"
 
 
 # Create a form
