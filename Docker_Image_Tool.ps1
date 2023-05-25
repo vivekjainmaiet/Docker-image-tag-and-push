@@ -1,10 +1,8 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Xml
 
-# Get the directory path of the script
-$scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Set the XML file path relative to the script directory
-$xmlFilePath = Join-Path -Path $scriptDirectory -ChildPath "images.xml"
+$xmlFilePath = "./config.xml"
 
 
 # Create a form
@@ -17,32 +15,27 @@ $form.StartPosition = "CenterScreen"
 
 # Create a label for the image name input
 $label = New-Object System.Windows.Forms.Label
-$label.Text = "Select the image name:"
+$label.Text = "Enter the image name:"
 $label.Location = New-Object System.Drawing.Point(10, 20)
 $label.AutoSize = $true
 $form.Controls.Add($label)
 
-# Create a dropdown list for the image names from the Harbor registry
-$dropdown = New-Object System.Windows.Forms.ComboBox
-$dropdown.Location = New-Object System.Drawing.Point(10, 50)
-$dropdown.Size = New-Object System.Drawing.Size(280, 20)
+# Create a text box for the image name input
+$textBox = New-Object System.Windows.Forms.TextBox
+$textBox.Location = New-Object System.Drawing.Point(10, 50)
+$textBox.Size = New-Object System.Drawing.Size(280, 20)
+$form.Controls.Add($textBox)
 
-# Read the XML file
-$xml = [System.Xml.XmlDocument](Get-Content $xmlFilePath)
+try {
+    $xml = [xml](Get-Content $xmlFilePath)
+    
+    $projectName = $xml.SelectNodes("//PROJECT").InnerText
+    $registryName = $xml.SelectNodes("//REGISTRY").InnerText
 
-# Get the CAPTION and registry name from the XML nodes
-$captionNodes = $xml.SelectNodes("//CAPTION")
-$registryNodes = $xml.SelectNodes("//REGISTRY")
-
-foreach ($captionNode in $captionNodes) {
-    $imageCaption = $captionNode.InnerText
-    foreach ($registryNode in $registryNodes) {
-        $registryName = $registryNode.InnerText
-        $dropdown.Items.Add("$imageCaption/$IMAGE_NAME ($registryName)")
-    }
 }
-
-$form.Controls.Add($dropdown)
+catch {
+    Write-Error "Failed to read XML file: $_"
+}
 
 # Create a button to perform the Docker steps
 $button = New-Object System.Windows.Forms.Button
@@ -71,8 +64,8 @@ $form.Controls.Add($errorLabel)
 
 # Function to handle the button click event
 $button.Add_Click({
-    $IMAGE_NAME = $dropdown.SelectedItem
-    $NEW_IMAGE_NAME = "$imageCaption/$IMAGE_NAME"
+    $IMAGE_NAME = $textBox.Text
+    $NEW_IMAGE_NAME = "$projectName/$IMAGE_NAME"
     $HARBOR_REGISTRY = $registryName
 
     # Show progress bar and hide error label
@@ -81,6 +74,8 @@ $button.Add_Click({
 
     try {
         # Pull the original image
+        # Get the value of the text box (image_name)
+        $IMAGE_NAME = $textBox.Text
         $pull_output = docker pull $IMAGE_NAME 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to pull the original image.`n$pull_output"
@@ -122,4 +117,9 @@ $button.Add_Click({
 })
 
 # Start the form
-$form.ShowDialog()
+$result = $form.ShowDialog()
+
+# Check the result and perform further actions if needed
+if ($result -eq [System.Windows.Forms.DialogResult]::Cancel) {
+    exit
+}
